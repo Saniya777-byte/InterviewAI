@@ -12,3 +12,59 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+enum SessionStatus {
+  ACTIVE
+  COMPLETED
+}
+
+enum Speaker {
+  USER
+  AI
+}
+
+model User {
+  id         String             @id @default(cuid())
+  name       String
+  email      String             @unique
+  password   String
+
+  interviews InterviewSession[]
+
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+}
+
+model InterviewSession {
+  id         String            @id @default(cuid())
+
+  userId     String
+  user       User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  status     SessionStatus     @default(ACTIVE)
+
+  startedAt  DateTime          @default(now())
+  endedAt    DateTime?
+
+  messages   Message[]
+
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+
+  @@index([userId])
+}
+
+model Message {
+  id          String              @id @default(cuid())
+
+  sessionId   String
+  session     InterviewSession    @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  speaker     Speaker
+
+  content     String              @db.Text
+
+  createdAt   DateTime            @default(now())
+
+  @@index([sessionId])
+}
