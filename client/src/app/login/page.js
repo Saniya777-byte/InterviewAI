@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { loginUser } from "@/services/auth.service";
@@ -9,6 +9,13 @@ import { useAuth } from "@/context/AuthContext";
 export default function LoginForm() {
   const router = useRouter();
   const { login } = useAuth();
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      router.replace("/dashboard");
+    }
+  }, [router]);
 
   const [formData, setFormData] = useState({
     email: "",
@@ -76,15 +83,15 @@ export default function LoginForm() {
               Email
             </label>
 
-            <input
-              type="email"
-              name="email"
-              placeholder="john@example.com"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
-            />
+               <input
+                type="email"
+                name="email"
+                placeholder="john@example.com"
+                value={formData.email}
+                onChange={handleChange}
+                required
+                className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 caret-blue-600 outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+                />
           </div>
 
           <div>
@@ -93,14 +100,14 @@ export default function LoginForm() {
             </label>
 
             <input
-              type="password"
-              name="password"
-              placeholder="••••••••"
-              value={formData.password}
-              onChange={handleChange}
-              required
-              className="w-full rounded-lg border border-slate-300 px-4 py-3 outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
-            />
+                type="password"
+                name="password"
+                placeholder="••••••••"
+                value={formData.password}
+                onChange={handleChange}
+                required
+                className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-900 placeholder:text-slate-400 caret-blue-600 outline-none transition focus:border-blue-600 focus:ring-2 focus:ring-blue-100"
+                />
           </div>
 
           <button

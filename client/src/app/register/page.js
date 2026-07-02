@@ -1,12 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { registerUser } from "@/services/auth.service";
+import { useAuth } from "@/context/AuthContext";
 
 export default function RegisterForm() {
   const router = useRouter();
+  const { login } = useAuth();
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      router.replace("/dashboard");
+    }
+  }, [router]);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -27,24 +36,26 @@ export default function RegisterForm() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    setLoading(true);
-    setError("");
+  setLoading(true);
+  setError("");
 
-    try {
-      await registerUser(formData);
+  try {
+    const response = await registerUser(formData);
 
-      router.push("/login");
-    } catch (err) {
-      setError(
-        err?.response?.data?.message ||
-          "Registration failed. Please try again."
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
+    login(response.user, response.token);
+
+    router.replace("/dashboard");
+  } catch (err) {
+    setError(
+      err?.response?.data?.message ||
+      "Registration failed. Please try again."
+    );
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-100 px-4">
