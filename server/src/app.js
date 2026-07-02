@@ -3,7 +3,7 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const authRoutes = require("./modules/auth/auth.routes");
 const errorHandler = require("./middleware/error.middleware");
-
+const interviewRoutes = require("./modules/interview/interview.routes");
 const app = express();
 
 app.use(cors());
@@ -19,6 +19,7 @@ app.get("/api/health", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/interview", interviewRoutes);
 app.use(errorHandler);
 
 

@@ -16,10 +16,10 @@ const errorHandler = (err, req, res, next) => {
     });
   }
 
-  if (err.message === "Invalid email or password") {
+  if (err.message === "Invalid email or password" || err.message === "Invalid credentials") {
     return res.status(401).json({
       success: false,
-      message: err.message,
+      message: "Invalid email or password",
     });
   }
 
