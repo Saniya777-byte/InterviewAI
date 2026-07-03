@@ -1,6 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { Play, Pause } from "lucide-react";
+import profileImg from "@/assets/profile.png";
 
 export default function InterviewerCard({
   session,
@@ -21,9 +23,9 @@ export default function InterviewerCard({
       <div className="flex flex-col items-center">
 
         <img
-          src="https://api.dicebear.com/9.x/adventurer/svg?seed=Claire"
+          src={profileImg.src}
           alt="AI Interviewer"
-          className="h-36 w-36 rounded-full border-4 border-blue-500 bg-slate-100"
+          className="h-36 w-36 rounded-full border-4 border-blue-500 bg-slate-100 object-cover"
         />
 
         <h2 className="mt-5 text-2xl font-bold text-slate-800">
@@ -44,8 +46,9 @@ export default function InterviewerCard({
             Status
           </span>
 
-          <span className="font-semibold text-green-600">
-            🟢 Live
+          <span className="flex items-center gap-1.5 font-bold text-green-600">
+            <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+            Live
           </span>
 
         </div>
@@ -80,13 +83,23 @@ export default function InterviewerCard({
 
         <button
           onClick={onTogglePause}
-          className={`w-full rounded-lg border py-3 font-semibold transition-all duration-200 ${
+          className={`w-full flex items-center justify-center gap-2 rounded-lg border py-3 font-semibold transition-all duration-200 ${
             status === "paused"
               ? "border-green-300 bg-green-50 text-green-700 hover:bg-green-100"
               : "border-slate-300 bg-white text-slate-700 hover:bg-slate-100"
           }`}
         >
-          {status === "paused" ? "▶️ Resume Interview" : "⏸️ Pause Interview"}
+          {status === "paused" ? (
+            <>
+              <Play className="h-4 w-4" />
+              Resume Interview
+            </>
+          ) : (
+            <>
+              <Pause className="h-4 w-4" />
+              Pause Interview
+            </>
+          )}
         </button>
 
         <button

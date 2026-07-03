@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { startInterview, getInterviewHistory } from "@/services/interview.service";
+import { BookOpen } from "lucide-react";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -163,7 +164,7 @@ export default function Dashboard() {
             </div>
           ) : interviews.length === 0 ? (
             <div className="my-8 flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-200 py-16 px-4 text-center">
-              <span className="text-4xl">📚</span>
+              <BookOpen className="h-12 w-12 text-slate-400" />
               <h4 className="mt-4 text-lg font-bold text-slate-700">No mock interviews completed yet</h4>
               <p className="mt-2 max-w-sm text-sm text-slate-500">
                 Click "Start Voice Interview" above to conduct your first AI-evaluated mock interview.

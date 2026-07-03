@@ -1,5 +1,6 @@
 "use client";
 
+import { Timer } from "lucide-react";
 import InterviewerCard from "./InterviewerCard";
 import TranscriptPanel from "./TranscriptPanel";
 import VoiceButton from "./VoiceButton";
@@ -39,10 +40,15 @@ export default function InterviewLayout({
           <div className="flex items-center gap-4">
             {/* Timer component */}
             <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 font-mono text-sm font-bold text-slate-700 shadow-sm">
-              ⏱️ {formatTime(timer)}
+              <Timer className="h-4 w-4 text-slate-500" />
+              {formatTime(timer)}
             </div>
-            <div className="rounded-full bg-green-100 px-4 py-2 text-xs font-bold text-green-800 shadow-sm border border-green-200">
-              🟢 Live Session
+            <div className="flex items-center gap-2 rounded-full bg-green-50 px-4 py-2 text-xs font-bold text-green-700 shadow-sm border border-green-200">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+              </span>
+              Live Session
             </div>
           </div>
         </div>
