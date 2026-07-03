@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Mic, Volume2, Settings, Search, Sparkles, AlertCircle } from "lucide-react";
 
 export default function VoiceButton({
   status,
@@ -19,8 +20,9 @@ export default function VoiceButton({
 
   if (!supported) {
     return (
-      <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-center text-sm font-medium text-red-600">
-        ⚠️ Speech Recognition is not supported by your browser. Please use Google Chrome or Microsoft Edge.
+      <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-center text-sm font-medium text-red-600">
+        <AlertCircle className="h-5 w-5 shrink-0" />
+        Speech Recognition is not supported by your browser. Please use Google Chrome or Microsoft Edge.
       </div>
     );
   }
@@ -28,32 +30,32 @@ export default function VoiceButton({
   // Determine button styles, icons, and labels based on current status
   let buttonClass = "bg-blue-600 hover:bg-blue-700 text-white hover:shadow-blue-200 hover:scale-105";
   let label = "Click to Speak";
-  let icon = "🎤";
+  let icon = <Mic className="h-8 w-8" />;
 
   if (status === "listening") {
     buttonClass = "bg-red-500 hover:bg-red-600 text-white animate-pulse scale-105 shadow-red-200";
     label = "Listening... Speak now";
-    icon = "🎙️";
+    icon = <Mic className="h-8 w-8 animate-pulse" />;
   } else if (status === "candidate-speaking") {
     buttonClass = "bg-orange-500 hover:bg-orange-600 text-white animate-ping scale-105 shadow-orange-200";
     label = "Capturing Voice...";
-    icon = "🗣️";
+    icon = <Volume2 className="h-8 w-8 animate-bounce" />;
   } else if (status === "speaking") {
     buttonClass = "bg-green-500 text-white cursor-not-allowed opacity-90 shadow-green-100";
     label = "Claire is Speaking...";
-    icon = "🔊";
+    icon = <Volume2 className="h-8 w-8" />;
   } else if (status === "processing") {
     buttonClass = "bg-blue-500 text-white cursor-not-allowed opacity-90 animate-pulse shadow-blue-100";
     label = "Processing Answer...";
-    icon = "⚙️";
+    icon = <Settings className="h-8 w-8 animate-spin" />;
   } else if (status === "analyzing") {
     buttonClass = "bg-indigo-500 text-white cursor-not-allowed opacity-90 animate-pulse shadow-indigo-100";
     label = "Analyzing Answer...";
-    icon = "🔍";
+    icon = <Search className="h-8 w-8 animate-pulse" />;
   } else if (status === "generating") {
     buttonClass = "bg-amber-500 text-white cursor-not-allowed opacity-90 animate-pulse shadow-amber-100";
     label = "Generating Next Question...";
-    icon = "⚡";
+    icon = <Sparkles className="h-8 w-8 animate-pulse" />;
   }
 
   const isDisabled =

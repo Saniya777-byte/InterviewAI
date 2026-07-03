@@ -390,7 +390,6 @@ export default function InterviewPage() {
         startListening();
       }
     } else {
-      // Pause the interview
       statusRef.current = "paused";
       setStatus("paused");
       // Cancel speech synthesis
