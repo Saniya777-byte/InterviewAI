@@ -5,8 +5,8 @@ const {
 } = require("@langchain/langgraph");
 
 const {
-  analyzeInterviewState,
-  generateInterviewResponse,
+  evaluateAnswer,
+  generateResponse,
 } = require("./groq.service");
 
 const graph = new StateGraph({
@@ -15,33 +15,29 @@ const graph = new StateGraph({
       value: (_, value) => value,
       default: () => [],
     },
-    currentTopic: {
-      value: (_, value) => value,
-      default: () => "Introduction",
-    },
-    topicsCompleted: {
+    topics_covered: {
       value: (_, value) => value,
       default: () => [],
     },
-    followUpCount: {
+    key_claims: {
       value: (_, value) => value,
-      default: () => 0,
+      default: () => [],
     },
-    difficultyLevel: {
-      value: (_, value) => value,
-      default: () => "Mid",
-    },
-    candidatePerformance: {
+    follow_up_count_by_topic: {
       value: (_, value) => value,
       default: () => ({}),
     },
-    action: {
+    time_elapsed_minutes: {
       value: (_, value) => value,
-      default: () => "NEXT",
+      default: () => 0,
     },
-    classification: {
+    time_remaining_minutes: {
       value: (_, value) => value,
-      default: () => "",
+      default: () => 15,
+    },
+    evaluation: {
+      value: (_, value) => value,
+      default: () => null,
     },
     response: {
       value: (_, value) => value,
@@ -50,130 +46,104 @@ const graph = new StateGraph({
   },
 });
 
-graph.addNode("analyze", async (state) => {
-  const result = await analyzeInterviewState(state.messages);
+graph.addNode("evaluate_answer", async (state) => {
+  const result = await evaluateAnswer(state.messages);
 
   return {
-    currentTopic: result.currentTopic,
-    topicsCompleted: result.topicsCompleted,
-    followUpCount: result.followUpCount,
-    difficultyLevel: result.difficultyLevel,
-    candidatePerformance: result.candidatePerformance,
-    classification: result.classification,
-    action: result.action,
-  };
-});
-
-graph.addNode("clarification", async (state) => {
-  const prompt = [
-    ...state.messages,
-    {
-      speaker: "USER",
-      content: `The candidate's last answer was evaluated as "${state.classification}". Ask one clarification or follow-up question to give them a chance to improve on the topic of "${state.currentTopic}". Acknowledge what they said briefly and raise a specific point for them to address. Keep it warm, human-like, and professional. Max 80 words.`,
+    topics_covered: result.topics_covered,
+    key_claims: result.key_claims,
+    follow_up_count_by_topic: result.follow_up_count_by_topic,
+    time_elapsed_minutes: result.time_elapsed_minutes,
+    time_remaining_minutes: result.time_remaining_minutes,
+    evaluation: {
+      depth: result.depth,
+      specificity: result.specificity,
+      gaps: result.gaps,
+      contradicts_earlier: result.contradicts_earlier,
+      route: result.route,
+      reason: result.reason,
+      currentTopic: result.currentTopic,
     },
-  ];
-
-  const response = await generateInterviewResponse(prompt);
-
-  return {
-    response,
   };
 });
 
-graph.addNode("followUp", async (state) => {
-  const prompt = [
-    ...state.messages,
-    {
-      speaker: "USER",
-      content: `The candidate's last answer was evaluated as "${state.classification}". Ask one follow-up question to dive deeper into the topic of "${state.currentTopic}" (this is follow-up #${state.followUpCount + 1}). Make it challenging but appropriate for a ${state.difficultyLevel}-level developer. Keep it warm, human-like, and professional. Max 80 words.`,
-    },
-  ];
-
-  const response = await generateInterviewResponse(prompt);
-
-  return {
-    response,
-  };
+graph.addNode("generate_probe", async (state) => {
+  const response = await generateResponse(state);
+  return { response };
 });
 
-graph.addNode("nextQuestion", async (state) => {
-  const allowedTopics = [
-    "JavaScript",
-    "React",
-    "Node.js",
-    "Express.js",
-    "PostgreSQL",
-    "REST APIs",
-    "Authentication",
-    "System Design",
-    "Problem Solving",
-  ];
+graph.addNode("generate_follow_up", async (state) => {
+  const response = await generateResponse(state);
+  return { response };
+});
 
-  // Find the next topic that is not completed
-  const nextTopic = allowedTopics.find((t) => !state.topicsCompleted.includes(t));
+graph.addNode("generate_challenge", async (state) => {
+  const response = await generateResponse(state);
+  return { response };
+});
 
-  if (!nextTopic) {
-    const prompt = [
-      ...state.messages,
-      {
-        speaker: "USER",
-        content: `Acknowledge their answer. Conclude the interview session politely, thank them for their time, and explain that we have gathered all the necessary info to evaluate. Do not ask any more questions. Max 80 words.`,
-      },
-    ];
-    const response = await generateInterviewResponse(prompt);
-    return {
-      response,
-      action: "END",
-    };
+graph.addNode("generate_move_on", async (state) => {
+  const response = await generateResponse(state);
+  return { response };
+});
+
+graph.addNode("generate_end", async (state) => {
+  const response = await generateResponse(state);
+  return { response };
+});
+
+const routeDecision = (state) => {
+  const route = state.evaluation?.route || "acknowledge_and_move_on";
+  
+  if (state.time_remaining_minutes <= 0) {
+    return "generate_end";
   }
-
-  const prompt = [
-    ...state.messages,
-    {
-      speaker: "USER",
-      content: `Acknowledge the candidate's last response naturally (e.g. "Nice", "That's fine, let's switch topics", or "Got it"). Transition naturally to the new topic: "${nextTopic}" (e.g., "Let's move on to ${nextTopic}" or "Now I'd like to discuss ${nextTopic}"). Ask one main conceptual/practical question about "${nextTopic}" appropriate for a ${state.difficultyLevel}-level developer. Do not ask multiple questions. Max 80 words.`,
-    },
-  ];
-
-  const response = await generateInterviewResponse(prompt);
-
-  return {
-    response,
-  };
-});
-
-graph.addNode("endInterview", async (state) => {
-  const prompt = [
-    ...state.messages,
-    {
-      speaker: "USER",
-      content: `Acknowledge their answer. Conclude the interview session politely, thank them for their time, and explain that we have gathered all the necessary info to evaluate. Do not ask any more questions. Max 80 words.`,
-    },
-  ];
-
-  const response = await generateInterviewResponse(prompt);
-
-  return {
-    response,
-  };
-});
+  
+  switch (route) {
+    case "probe":
+      return "generate_probe";
+    case "follow_up":
+      return "generate_follow_up";
+    case "challenge":
+      return "generate_challenge";
+    case "acknowledge_and_move_on": {
+      // If all topics covered, route to end
+      const allowedTopics = [
+        "JavaScript", "React", "Node.js", "Express.js",
+        "PostgreSQL", "REST APIs", "Authentication",
+        "System Design", "Problem Solving"
+      ];
+      const covered = (state.topics_covered || []).map(t => t.topic);
+      const allCovered = allowedTopics.every(t => covered.includes(t));
+      if (allCovered) {
+        return "generate_end";
+      }
+      return "generate_move_on";
+    }
+    case "end":
+    default:
+      return "generate_end";
+  }
+};
 
 graph.addConditionalEdges(
-  "analyze",
-  (state) => state.action,
+  "evaluate_answer",
+  routeDecision,
   {
-    CLARIFICATION: "clarification",
-    FOLLOW_UP: "followUp",
-    NEXT: "nextQuestion",
-    END: "endInterview",
+    generate_probe: "generate_probe",
+    generate_follow_up: "generate_follow_up",
+    generate_challenge: "generate_challenge",
+    generate_move_on: "generate_move_on",
+    generate_end: "generate_end"
   }
 );
 
-graph.addEdge(START, "analyze");
-graph.addEdge("clarification", END);
-graph.addEdge("followUp", END);
-graph.addEdge("nextQuestion", END);
-graph.addEdge("endInterview", END);
+graph.addEdge(START, "evaluate_answer");
+graph.addEdge("generate_probe", END);
+graph.addEdge("generate_follow_up", END);
+graph.addEdge("generate_challenge", END);
+graph.addEdge("generate_move_on", END);
+graph.addEdge("generate_end", END);
 
 const compiledGraph = graph.compile();
 
@@ -182,9 +152,13 @@ const runInterviewGraph = async (messages) => {
     messages,
   });
 
+  const isCompleted = result.evaluation?.route === "end" || 
+                      result.response?.toLowerCase().includes("thank you") || 
+                      result.time_remaining_minutes <= 0;
+
   return {
     response: result.response,
-    action: result.action,
+    action: isCompleted ? "END" : "NEXT",
   };
 };
 
