@@ -3,7 +3,7 @@ import { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import InterviewLayout from "@/components/interview/InterviewLayout";
-import {getInterview,sendMessage,endInterview,} from "@/services/interview.service";
+import { getInterview, sendMessage, endInterview, } from "@/services/interview.service";
 
 export default function InterviewPage() {
   const { id } = useParams();
@@ -90,10 +90,10 @@ export default function InterviewPage() {
 
     rec.onend = () => {
       isListeningRef.current = false;
-      
+
       const finalResult = (accumulatedTranscriptRef.current + " " + interimTranscriptRef.current).trim();
       const currentStatus = statusRef.current;
-      
+
       if (finalResult && !isCompletedRef.current && (currentStatus === "listening" || currentStatus === "candidate-speaking")) {
         commitSpeechResult(finalResult);
       } else {
@@ -165,7 +165,7 @@ export default function InterviewPage() {
         // No speech detected at all, stop listening
         try {
           recognitionRef.current?.stop();
-        } catch (e) {}
+        } catch (e) { }
         setStatus("ready");
       }
     }, 5500); // 5.5 seconds silence threshold
@@ -177,7 +177,7 @@ export default function InterviewPage() {
     }
     try {
       recognitionRef.current?.stop();
-    } catch (e) {}
+    } catch (e) { }
 
     setInterimTranscript("");
     sendUserResponse(finalResult);
@@ -365,7 +365,7 @@ export default function InterviewPage() {
     if (isListeningRef.current) {
       try {
         recognitionRef.current?.stop();
-      } catch (e) {}
+      } catch (e) { }
       setStatus("ready");
     } else {
       if (window.speechSynthesis) {
@@ -400,7 +400,7 @@ export default function InterviewPage() {
       if (recognitionRef.current) {
         try {
           recognitionRef.current.abort();
-        } catch (e) {}
+        } catch (e) { }
       }
       if (silenceTimerRef.current) {
         clearTimeout(silenceTimerRef.current);
